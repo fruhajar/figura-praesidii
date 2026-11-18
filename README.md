@@ -1,143 +1,143 @@
 # Figura Praesidii
 
-*Praesidii*, the genitive: "figure of protection". *Praesidium* is neuter nominative
-and would not agree.
+Find out what the public record holds about **you**, then get it taken down.
 
-Shows you what the internet holds about *you*, then helps you get it removed.
+You run it on your own machine, against your own name. It searches Czech public
+registers within a locality, works out which of the results are actually you rather
+than a namesake, shows you the evidence for each decision, and names the legal route
+that works against each holder: an Article 15 access request where the entry cannot be
+erased, an Article 21 objection plus Article 17 erasure against the commercial sites
+that republish it, delisting against a search engine.
 
-You run it on yourself. It reports your own exposure and generates the GDPR Article
-15 (access) and Article 17 (erasure) requests for each holder it finds, then tracks
-the statutory response deadline.
+Nothing is uploaded. There is no account, no server, and no shared compute.
 
-> **Status:** nothing built. This directory holds the plan.
+> **Status: early.** The correlation engine and the lookup pipeline work end to end and
+> are covered by tests. No source in the shipped catalog has been checked against a
+> live site yet, so treat an empty result as untested rather than clean. Request
+> drafting, the encrypted findings store and the calendar export are not built.
 
-## Self-lookup only
+*Praesidii* is the genitive: "figure of protection".
 
-This is a hard architectural boundary, not a policy note, and it is recorded here so
-it does not creep back in later.
+## Why self-lookup only
 
-Looking up **other people** is out of scope. Two features in particular are
-permanently excluded: searching by *description* rather than by a known identifier,
-which makes the tool a reverse-identification engine aimed at someone who has not
-said who they are; and inferring **"people this person knows,"** since a social graph
-around a private individual is the working core of stalking and harassment. "It is
-all public" does not change this, because the harm lives in the aggregation. Public
-facts become a targeting package once assembled.
+Looking up **other people** is permanently out of scope, and that is an architectural
+boundary rather than a policy note. Searching by description instead of by a known
+identifier makes a tool a reverse-identification engine; inferring "people this person
+knows" makes it a stalking aid. Pointing the same plumbing at yourself fixes both at
+once: the data subject is the consenting user, and the hard parts of the GDPR become
+the feature set. The full reasoning, including why a device-ID lookup has no lawful
+corpus to query, is in [docs/scope.md](docs/scope.md).
 
-Hosting that version would also make the operator a GDPR controller with
-unsatisfiable duties: no Article 6 basis for profiling third parties for anonymous
-requesters, Article 14 notification that kills the product if honoured and is the
-breach if not, Article 9 special categories swept in unavoidably through the graph,
-mandatory DPIA. *Clearview AI* is the settled precedent across the French, Italian,
-Greek and Dutch authorities, where "the data was already public" lost every time and
-the Dutch DPA warned of personal liability for directors.
+## Install
 
-Inverting the direction fixes all of it at once. The data subject becomes the
-consenting user, and the hard articles turn from liability into the feature set.
+Needs Rust 1.85 or newer.
 
-For the investigator-side use case, Maltego, SpiderFoot, OCCRP Aleph, theHarvester,
-Holehe and Sherlock already exist, and all of them ship as locally-run tools
-precisely so the controller liability sits with the searcher.
+```sh
+cargo build --release --manifest-path desktop/Cargo.toml
+```
 
-## Three slices
+The binary lands at `desktop/target/release/fp`.
 
-### 1. Public register exposure (start here)
+## Usage
 
-Czech public registers expose far more than people realise. `or.justice.cz` publishes
-company officers' full name, date of birth and **home address**, so anyone who has
-ever been a jednatel has their residence online. RŽP exposes sole traders' places of
-business, usually also home. Add `isir.justice.cz` (insolvency) and the land registry
-and the picture gets detailed.
+Describe yourself in a JSON file. Only what you are willing to match on, and nothing
+you would mind losing:
 
-**The asymmetry that makes this a product:** the register entry itself is immovable,
-since publication is a statutory obligation and an Article 17 request against it will
-fail. The commercial mirror sites that scrape the register, republish it and rank on
-people's names have a far weaker legitimate-interest claim. That is where erasure
-requests actually bite, and the mirror is what surfaces when someone searches their
-own name.
+```json
+{
+  "names": ["Jana Dvořáková", "Jana Marková"],
+  "birth_date": "14.3.1981",
+  "localities": ["Nuselská 123/45, Praha 4, 140 00"],
+  "emails": ["jana@example.cz"],
+  "name_rarity": "common"
+}
+```
 
-Enumerate the footprint, find the mirrors carrying it, generate the correctly-grounded
-Czech-language request for each. Novel, lawful, no corpus needed, and hand-verifiable
-against the source.
+Then run a scan:
 
-### 2. Breach and broker exposure, with the request pipeline
+```sh
+fp scan --identity me.json --locality Praha --cache ~/.cache/figprae
+```
 
-HIBP for breach hits by email and phone. Then the part that is actually valuable:
-knowing *which* holders to ask, generating the requests, tracking the one-month
-deadline (extensible to three), and escalating to ÚOOÚ when a controller ignores it.
+Other commands:
 
-### 3. Device emission measurement (v2, mobile)
+```sh
+fp sources           # every source, and whether it has been checked against the live site
+fp verify-sources --identity me.json   # check the catalog's URL templates and labels
+fp help
+```
 
-See below. This replaces the device-ID lookup idea, which is not buildable.
+To see the output shape without touching the network, run the bundled demo. The subject
+is fictional and the two sources are stand-ins served from a cache:
 
-## Device-ID search does not work, and why
+```sh
+cargo run --manifest-path desktop/Cargo.toml -p fp-cli -- scan \
+  --identity desktop/example/me.json \
+  --catalog desktop/example/catalog.json \
+  --offline --cache desktop/example/cache
+```
 
-The original idea was querying by personal device IDs on the reasoning that a
-stranger would not know them, making the tool self-limiting by construction. The
-reasoning is sound but the identifiers do not hold up, and there is nothing to query.
+It finds the register entry and the mirror copying it, names the route for each, and
+discards two records belonging to other people.
 
-| Identifier | Actually secret? |
+### The report is a dossier on you
+
+A finished report is the highest-value file on your disk: everything a stranger would
+have to assemble by hand, assembled. It prints to the terminal and is written to disk
+only when you pass `--out`. Keep it out of synced folders.
+
+## How it decides a record is yours
+
+Field agreements are scored in bits, Fellegi-Sunter style, and every verdict carries
+the per-field evidence that produced it next to the value the source published, so you
+can check the reasoning against the page. Two rules matter more than the arithmetic:
+
+- **A namesake is never promoted.** Calling a record yours takes 20 bits in total *and*
+  12 bits from fields that can tell two people apart: a date of birth, a street address
+  with a house number, an exact e-mail, phone or IČO. A name and a town can agree
+  perfectly and the verdict stays "possibly yours".
+- **A contradiction excludes.** A different birth year or month, or a different given
+  name in a source that carries legal names, rules a record out whatever else agrees.
+  Excluded records are counted and discarded, never stored. Addresses are exempt,
+  because people move.
+
+Czech specifics carry real weight here: diacritic folding, `Nováková` and `Novák`
+sharing a surname root, either name order, titles stripped out of the name field,
+`14. března 1981` parsed, partial dates as a first-class case, IČO check digits.
+`rodné číslo` is deliberately never collected.
+
+## Limitations
+
+- Every URL template in the catalog is unverified. Run `fp verify-sources` from a
+  machine that can reach the hosts, and read a page by hand before trusting it.
+- No commercial mirror ships in the catalog, so the route where erasure actually bites
+  has nothing to run against until you add the sites that rank on your own name.
+- The insolvency register needs a form POST the fetcher cannot drive; the land registry
+  gates person search behind a captcha.
+- Breach and broker exposure, drafted request letters, deadline tracking and the mobile
+  emission measurement are described in the docs and not implemented.
+
+## Documentation
+
+| Document | What is in it |
 |---|---|
-| IMEI, serial | Yes. Needs the device, the box, or the carrier bill. |
-| Wi-Fi / BLE MAC | **No.** Broadcast over the air; capturable by a neighbour or anyone who shared a café. OS randomisation helps, but the real address leaks on association. |
-| Advertising ID (GAID / IDFA) | **No.** Every ad SDK in every installed app receives it, and it is actively traded in bidstream data. |
+| [docs/scope.md](docs/scope.md) | What this is and is not, and why. Read first. |
+| [docs/architecture.md](docs/architecture.md) | How the code works, and what is not built. |
+| [docs/desktop.md](docs/desktop.md) | The desktop tool: pipeline, slices, storage. |
+| [docs/online.md](docs/online.md) | The hosted surface, and the invariant it must keep. |
+| [docs/mobile.md](docs/mobile.md) | Device emission measurement on Android. |
+| [docs/agents.md](docs/agents.md) | Instructions for coding agents working in this repo. |
 
-And the corpus problem is fatal. Indexing device IDs means buying breach dumps or
-bidstream and location broker data, which would make this project the holder of
-exactly the dataset it exists to oppose, on millions of non-consenting people, while
-funding the harm. There is no lawful, accessible corpus.
+## Contributing
 
-**The buildable inversion is local measurement.** Do not ask a database what it knows
-about the device; measure what the device emits. Which advertising ID it currently
-presents, which trackers and SDK endpoints it contacts and how often, what it
-broadcasts over Wi-Fi and BLE when idle, whether MAC randomisation is actually on,
-which apps hold location, contacts and clipboard access and when they last used them.
+`main` is protected; work on `dev` and open a pull request. Before pushing, run
+`cargo test`, `cargo clippy --all-targets` and `cargo fmt --all` from `desktop/`.
 
-No corpus, no API keys, no broker money. Findings are actionable the same minute, and
-it reports measured reality rather than a probabilistic guess about identity.
+Contribution terms are not settled yet, so please open an issue before sending a
+substantial change. Never put real personal data in a test, a fixture or an example.
 
-## Verification scales with what is revealed
+## Licence
 
-| Reveals | Verification |
-|---|---|
-| Public register data | **None needed.** Nothing is disclosed that is not already public. |
-| Breach hits for an email or phone | Emailed or texted code. HIBP's model: open lookup permitted, sensitive breaches gated on proof of control of the address. |
-| Device identifiers and emissions | Companion app reading its own identifiers. Typing an IMEI proves nothing; running code on the handset proves a lot. |
-| Anything at all | **Never accept ID document scans.** It would make this the custodian of the highest-value data it could hold, and it is what age-verification vendors keep getting breached over. |
-
-## Layout
-
-Each subdirectory has its own scope document. Read those before touching code.
-
-- **`desktop/`** the tool itself. Slices 1 and 2. The main deliverable.
-- **`online/`** deliberately the most constrained surface in the whole project. Static
-  by default, and it must never receive an identifier being looked up.
-- **`mobile/`** slice 3, device emission measurement. Android is the real target; iOS
-  blocks most of what this needs and Apple already ships much of it.
-
-## Why local-first settles the resource question
-
-If the tool runs on the user's machine, their queries never touch the server. Nothing
-to jam up, because there is no shared compute, and no third-party data is processed,
-which removes most of the compliance burden. Same reasoning that keeps Maltego and
-SpiderFoot local.
-
-## Two residual risks
-
-1. **The output is a ready-made dossier on the user**, which makes the report the
-   highest-value file on their disk. Encrypt at rest, never sync it, make saving
-   explicit rather than default. It should pass through Figura Munda before being
-   shared with anyone.
-2. **Some adapters accept arbitrary input.** Holehe-style enumeration will report
-   which sites *any* address is registered on, so the local build is not fully
-   abuse-proof. Either bind those adapters behind the verified tier or state the gap
-   plainly in the README. Do not claim an abuse-proof local tool.
-
-## Related but deliberately separate
-
-Transparency obligations for public officials, company directors and beneficial
-owners are a real and defensible category, with the opposite default posture, and
-they belong in a different product. Note that even there the trend is restrictive:
-*WM and Sovim* (CJEU C-37/20, November 2022) struck down public access to
-beneficial-ownership registers, limiting it to those showing a legitimate interest.
-OpenCorporates, OpenSanctions and OCCRP Aleph already cover the space.
+Not yet chosen, which means the default applies: all rights reserved, and no reuse is
+permitted for now. The intended shape is an open individual tool with a paid expansion
+kept separate, but nothing is decided.

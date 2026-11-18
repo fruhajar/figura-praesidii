@@ -1,4 +1,4 @@
-# Figura Praesidii — online
+# Figura Praesidii: online
 
 The most constrained surface in the project. Static by default.
 

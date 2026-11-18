@@ -1,7 +1,7 @@
-# Figura Praesidii — mobile
+# Figura Praesidii: mobile
 
 Slice 3: measure what the device actually emits. This replaces the device-ID lookup
-idea, which has no lawful corpus to query (see the parent README).
+idea, which has no lawful corpus to query (see [scope.md](scope.md)).
 
 Do not ask a database what it knows about the handset. Measure the handset.
 
