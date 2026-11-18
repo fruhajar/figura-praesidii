@@ -1,0 +1,20 @@
+# Build output
+/desktop/target
+target/
+**/*.rs.bk
+
+# A findings report is a dossier on whoever ran the tool. Nothing resembling one
+# should ever be committable by accident.
+me.json
+identity.json
+# The demo subject is fictional and has to ship.
+!desktop/example/me.json
+*.identity.json
+*-report.txt
+/findings/
+/reports/
+
+# Runtime page caches. The fixtures under desktop/example/cache are tracked on
+# purpose; any other cache directory is not.
+/cache/
+/desktop/cache/

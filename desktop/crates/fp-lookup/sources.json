@@ -1,0 +1,108 @@
+{
+  "sources": [
+    {
+      "id": "or.justice.cz",
+      "title": "Obchodní rejstřík (Ministerstvo spravedlnosti ČR)",
+      "kind": "public_register",
+      "verified": false,
+      "notes": "Full extracts print a company officer's name, date of birth and home address. URL template and labels are unverified: no network access from the machine that wrote them. Run `fp verify-sources` before trusting a clean result.",
+      "query": {
+        "url": "https://or.justice.cz/ias/ui/rejstrik-$firma?nazev={name}&obec={locality}&polozek=50&typHledani=STARTS_WITH&jenPlatne=VSECHNY",
+        "requires_locality": false,
+        "min_interval_ms": 3000
+      },
+      "extract": {
+        "record_split": "Jméno:",
+        "fields": [
+          { "kind": "name", "labels": ["Jméno:", "Jméno a příjmení:"] },
+          { "kind": "birth_date", "labels": ["dat. nar.", "Datum narození:"] },
+          { "kind": "address", "labels": ["Bydliště:", "Adresa:", "Sídlo:"] },
+          { "kind": "function", "labels": ["Funkce:"] }
+        ],
+        "page_fields": [
+          { "kind": "company", "labels": ["Obchodní firma:", "Název:"] },
+          { "kind": "ico", "labels": ["IČO:", "IČ:"] }
+        ]
+      },
+      "controller": {
+        "name": "Ministerstvo spravedlnosti ČR",
+        "email": "podatelna@msp.justice.cz",
+        "postal": "Vyšehradská 16, 128 10 Praha 2"
+      }
+    },
+    {
+      "id": "rzp.cz",
+      "title": "Registr živnostenského podnikání",
+      "kind": "public_register",
+      "verified": false,
+      "notes": "Sole traders' place of business, which for most is the home address. The live interface is session-based; the template here is a starting point, not a working query.",
+      "query": {
+        "url": "https://www.rzp.cz/cgi-bin/aps_cacheWEB.sh?VSS_SERV=ZVWSBJFND&Action=Search&PODLE=2&JMENO={given}&PRIJMENI={surname}&OBEC={locality}",
+        "requires_locality": true,
+        "min_interval_ms": 4000
+      },
+      "extract": {
+        "record_split": "Jméno a příjmení",
+        "fields": [
+          { "kind": "name", "labels": ["Jméno a příjmení", "Podnikatel:"] },
+          { "kind": "birth_date", "labels": ["Datum narození", "Dat. narození"] },
+          { "kind": "address", "labels": ["Sídlo", "Adresa sídla", "Místo podnikání"] },
+          { "kind": "ico", "labels": ["IČO", "Identifikační číslo"] }
+        ]
+      },
+      "controller": {
+        "name": "Ministerstvo průmyslu a obchodu ČR",
+        "email": "posta@mpo.cz",
+        "postal": "Na Františku 32, 110 15 Praha 1"
+      }
+    },
+    {
+      "id": "isir.justice.cz",
+      "title": "Insolvenční registr",
+      "kind": "public_register",
+      "verified": false,
+      "enabled": false,
+      "notes": "Person search is a form POST, which the GET-only fetcher cannot drive. Left in the catalog so the gap is visible rather than forgotten.",
+      "query": { "url": "https://isir.justice.cz/isir/ueu/evidence_upadcu_detail.do?jmeno={given}&prijmeni={surname}" },
+      "extract": {
+        "fields": [
+          { "kind": "name", "labels": ["Jméno", "Dlužník"] },
+          { "kind": "birth_date", "labels": ["Datum narození", "RČ/IČO"] },
+          { "kind": "address", "labels": ["Adresa", "Bydliště"] }
+        ]
+      }
+    },
+    {
+      "id": "mirror.example",
+      "title": "Template for a commercial mirror",
+      "kind": "commercial_mirror",
+      "verified": false,
+      "enabled": false,
+      "copies_from": "or.justice.cz",
+      "notes": "Copy this entry, point it at whichever site ranks on your own name, and fill in the controller from that site's imprint. Mirrors are where an erasure request actually bites, so they are the entries worth adding by hand; none are shipped, because none could be checked from here.",
+      "query": {
+        "url": "https://mirror.example/osoba?jmeno={name}&mesto={locality}",
+        "requires_locality": false
+      },
+      "extract": {
+        "record_split": "Jméno",
+        "fields": [
+          { "kind": "name", "labels": ["Jméno"] },
+          { "kind": "birth_date", "labels": ["Datum narození", "Narozen"] },
+          { "kind": "address", "labels": ["Adresa", "Bydliště"] }
+        ]
+      },
+      "controller": { "name": "fill in from the site's imprint" }
+    },
+    {
+      "id": "search-engine",
+      "title": "Search results for your own name",
+      "kind": "search_engine",
+      "verified": false,
+      "enabled": false,
+      "notes": "No automated queries: scraping a results page breaks the terms and gets the user blocked for nothing. Search your name by hand and paste the results in as records; the delisting route is then generated like any other.",
+      "query": { "url": "" },
+      "extract": { "fields": [] }
+    }
+  ]
+}

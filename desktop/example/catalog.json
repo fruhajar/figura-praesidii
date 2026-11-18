@@ -1,0 +1,45 @@
+{
+  "sources": [
+    {
+      "id": "register.test",
+      "title": "Obchodní rejstřík (demo stand-in)",
+      "kind": "public_register",
+      "verified": true,
+      "query": { "url": "https://register.test/search?nazev={name}&obec={locality}" },
+      "extract": {
+        "record_split": "Jméno:",
+        "fields": [
+          { "kind": "name", "labels": ["Jméno:"] },
+          { "kind": "birth_date", "labels": ["dat. nar."] },
+          { "kind": "address", "labels": ["Bydliště:"] },
+          { "kind": "function", "labels": ["Funkce:"] }
+        ],
+        "page_fields": [
+          { "kind": "company", "labels": ["Obchodní firma:"] },
+          { "kind": "ico", "labels": ["IČO:"] }
+        ]
+      },
+      "controller": {
+        "name": "Ministerstvo spravedlnosti ČR",
+        "email": "podatelna@msp.justice.cz"
+      }
+    },
+    {
+      "id": "mirror.test",
+      "title": "Výpis osob (demo mirror)",
+      "kind": "commercial_mirror",
+      "verified": true,
+      "copies_from": "register.test",
+      "query": { "url": "https://mirror.test/osoba?jmeno={name}&mesto={locality}" },
+      "extract": {
+        "record_split": "Jméno",
+        "fields": [
+          { "kind": "name", "labels": ["Jméno"] },
+          { "kind": "birth_date", "labels": ["Narozena", "Narozen"] },
+          { "kind": "address", "labels": ["Adresa"] }
+        ]
+      },
+      "controller": { "name": "Demo Mirror s.r.o.", "email": "info@mirror.test" }
+    }
+  ]
+}

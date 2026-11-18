@@ -1,0 +1,20 @@
+[package]
+name = "fp-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "fp"
+path = "src/main.rs"
+
+[features]
+default = ["http"]
+http = ["fp-lookup/http"]
+
+[dependencies]
+fp-core = { workspace = true }
+fp-correlate = { workspace = true }
+fp-lookup = { path = "../fp-lookup", default-features = false }
+serde = { workspace = true }
+serde_json = { workspace = true }
