@@ -89,5 +89,3 @@ Known gaps, in the order they bite:
   source to run against. Mirrors have to be added by hand, per name.
 - The report has no encryption and `--out` writes plain text. It is off by default for
   that reason.
-- Licensing is unsettled, so the manifests carry no licence field. Contribution terms
-  need deciding before the first commit, per the open-core split.

@@ -6,7 +6,8 @@ resolver = "3"
 version = "0.1.0"
 edition = "2024"
 rust-version = "1.85"
-# Licence deliberately unset: the open-core split for this project is not settled yet.
+license = "MPL-2.0"
+repository = "https://github.com/fruhajar/figura-praesidii"
 
 [workspace.dependencies]
 fp-core = { path = "crates/fp-core" }

@@ -133,11 +133,18 @@ sharing a surname root, either name order, titles stripped out of the name field
 `main` is protected; work on `dev` and open a pull request. Before pushing, run
 `cargo test`, `cargo clippy --all-targets` and `cargo fmt --all` from `desktop/`.
 
-Contribution terms are not settled yet, so please open an issue before sending a
-substantial change. Never put real personal data in a test, a fixture or an example.
+Sign off commits under the Developer Certificate of Origin with `git commit -s`.
+There is no CLA. See [CONTRIBUTING.md](CONTRIBUTING.md). Never put real personal
+data in a test, a fixture or an example.
 
 ## Licence
 
-Not yet chosen, which means the default applies: all rights reserved, and no reuse is
-permitted for now. The intended shape is an open individual tool with a paid expansion
-kept separate, but nothing is decided.
+**MPL-2.0**, the same terms as Figura Munda and for the same reason. Any paid
+expansion lives in a separate private repository that *links* this engine rather than
+absorbing its source, which file-level copyleft permits, so no contribution is ever
+relicensed and no CLA is needed. Nobody can close a fork of the lookup and correlation
+engine, which for a tool about your own exposure is the point rather than a side effect.
+
+Which expansion is paid is still open. That is a product question, and it no longer
+blocks anything: whatever lands in this repository is MPL-2.0. See
+[CONTRIBUTING.md](CONTRIBUTING.md).

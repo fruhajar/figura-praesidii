@@ -107,5 +107,7 @@ inventing what a page returns: write the fixture, mark the source unverified, an
 - Dependencies stay few and boring. The HTML path is tag stripping on purpose, because
   register label text outlives register markup.
 - `main` is protected. Work on `dev` and open a pull request.
-- Do not add a licence file or licence headers. The open-core split is unsettled, and
-  picking one is not an implementation detail.
+- The workspace is **MPL-2.0**, matching Munda. New crates carry
+  `license.workspace = true`; no per-file licence headers, since the LICENSE file and
+  the manifest field are the whole declaration. Any paid layer links the engine from a
+  separate repository, so nothing here needs relicensing.
