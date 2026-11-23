@@ -22,8 +22,8 @@ Two consequences worth stating plainly:
   paid tier might later want.
 
 Sign off commits under the [Developer Certificate of
-Origin](https://developercertificate.org/) with `git commit -s`. Nothing enforces it
-yet, since this repository has no CI, so it is on the author to remember.
+Origin](https://developercertificate.org/) with `git commit -s`. Nothing enforces the
+sign-off, so it is on the author to remember.
 `git rebase --signoff <the commit before yours>` fixes a branch that already has
 commits without it.
 
@@ -31,6 +31,10 @@ commits without it.
 
 `main` is protected. Work on `dev` and open a pull request. From `desktop/`, run
 `cargo test`, `cargo clippy --all-targets` and `cargo fmt --all`.
+
+CI runs the same three checks plus the offline demo, and it runs **only** on a pull
+request into `main` or when dispatched by hand from the Actions tab. Pushing to `dev`
+deliberately triggers nothing.
 
 Read [docs/agents.md](docs/agents.md) for how the code is expected to read, and
 [docs/scope.md](docs/scope.md) for what this tool refuses to become. Both carry

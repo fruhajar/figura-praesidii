@@ -146,7 +146,8 @@ sharing a surname root, either name order, titles stripped out of the name field
 ## Contributing
 
 `main` is protected; work on `dev` and open a pull request. Before pushing, run
-`cargo test`, `cargo clippy --all-targets` and `cargo fmt --all` from `desktop/`.
+`cargo test`, `cargo clippy --all-targets` and `cargo fmt --all` from `desktop/`. CI
+runs those plus the offline demo on pull requests into `main`, or on demand.
 
 Sign off commits under the Developer Certificate of Origin with `git commit -s`.
 There is no CLA. See [CONTRIBUTING.md](CONTRIBUTING.md). Never put real personal

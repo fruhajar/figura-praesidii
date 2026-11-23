@@ -1,0 +1,58 @@
+name: ci
+
+# On demand, or when a change is proposed into main. Pushes to dev stay quiet on
+# purpose: the fast loop is local, and a check that runs on every intermediate commit
+# is a check people learn to ignore.
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: desktop
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Toolchain
+        run: |
+          rustup update stable --no-self-update
+          rustup default stable
+          rustup component add clippy rustfmt
+          rustc --version
+          cargo --version
+
+      # --locked throughout: Cargo.lock is committed, and a stale lock should fail here
+      # rather than resolve to something nobody tested.
+      - name: Format
+        run: cargo fmt --all --check
+
+      - name: Clippy
+        run: cargo clippy --locked --all-targets -- -D warnings
+
+      - name: Tests
+        run: cargo test --locked --all
+
+      # The offline demo is the end-to-end check: most regressions in this code are
+      # plausible-looking text rather than a panic, so assert on what it concludes.
+      - name: Offline demo
+        run: |
+          out=$(cargo run --locked -q -p fp-cli -- scan \
+            --identity example/me.json \
+            --catalog example/catalog.json \
+            --offline --cache example/cache)
+          echo "$out"
+          echo "$out" | grep -q '^YOURS (2)' || { echo "::error::demo should find 2 records"; exit 1; }
+          echo "$out" | grep -q '2 record(s) carried your name' || { echo "::error::demo should rule out 2 records"; exit 1; }

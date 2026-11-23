@@ -114,7 +114,9 @@ inventing what a page returns: write the fixture, mark the source unverified, an
   "C-131/12 Costeja", not "the GDPR says".
 - Dependencies stay few and boring. The HTML path is tag stripping on purpose, because
   register label text outlives register markup.
-- `main` is protected. Work on `dev` and open a pull request.
+- `main` is protected. Work on `dev` and open a pull request. CI runs only on a pull
+  request into `main` or when dispatched by hand, so local `cargo test`, `clippy` and
+  `fmt` are the real gate while you work.
 - The workspace is **MPL-2.0**, matching Munda. New crates carry
   `license.workspace = true`; no per-file licence headers, since the LICENSE file and
   the manifest field are the whole declaration. Any paid layer links the engine from a
