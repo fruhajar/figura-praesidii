@@ -57,6 +57,7 @@ dependencies = [
  "fp-core",
  "fp-correlate",
  "fp-lookup",
+ "fp-request",
  "serde",
  "serde_json",
 ]
@@ -87,6 +88,15 @@ dependencies = [
  "serde",
  "serde_json",
  "ureq",
+]
+
+[[package]]
+name = "fp-request"
+version = "0.1.0"
+dependencies = [
+ "fp-core",
+ "fp-correlate",
+ "serde_json",
 ]
 
 [[package]]

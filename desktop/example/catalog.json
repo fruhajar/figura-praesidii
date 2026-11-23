@@ -12,10 +12,10 @@
           { "kind": "name", "labels": ["Jméno:"] },
           { "kind": "birth_date", "labels": ["dat. nar."] },
           { "kind": "address", "labels": ["Bydliště:"] },
-          { "kind": "function", "labels": ["Funkce:"] }
+          { "kind": "funkce", "labels": ["Funkce:"] }
         ],
         "page_fields": [
-          { "kind": "company", "labels": ["Obchodní firma:"] },
+          { "kind": "obchodní firma", "labels": ["Obchodní firma:"] },
           { "kind": "ico", "labels": ["IČO:"] }
         ]
       },

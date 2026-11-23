@@ -8,12 +8,15 @@ use std::process::ExitCode;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use fp_core::Identity;
+use fp_correlate::Verdict;
 use fp_lookup::{Catalog, Fetcher, OfflineFetcher, Query, scan};
+use fp_request::Disclosure;
 
 const USAGE: &str = "\
 fp, the Figura Praesidii self-lookup
 
   fp scan --identity me.json [options]   look yourself up and show what is exposed
+  fp requests --identity me.json [opts]  draft the GDPR request for each finding
   fp sources [--catalog c.json]          list the sources and whether they are checked
   fp verify-sources [options]            check each source against the live site
 
@@ -26,6 +29,9 @@ Options
   --budget <n>        maximum requests per run (default 20)
   --out <file>        also write the report to a file. Off by default: the report is a
                       dossier on you, so saving it is your decision, not ours.
+  --out-dir <dir>     requests only: write one letter per file into this directory
+  --include-possible  requests only: also draft letters for records that could still
+                      be a namesake's. Read the evidence before sending any of them.
 
 An identity file:
   {
@@ -47,6 +53,7 @@ fn main() -> ExitCode {
 
     let result = match command.as_str() {
         "scan" => cmd_scan(&args),
+        "requests" => cmd_requests(&args),
         "sources" => cmd_sources(&args),
         "verify-sources" => cmd_verify(&args),
         "help" | "--help" | "-h" => {
@@ -157,6 +164,62 @@ fn cmd_scan(args: &Args) -> Result<(), String> {
     if let Some(out) = args.get("out") {
         std::fs::write(out, &text).map_err(|e| format!("{out}: {e}"))?;
         eprintln!("fp: written to {out}. Keep it out of any synced folder.");
+    }
+    Ok(())
+}
+
+/// Drafts a letter per finding. Deliberately a separate command rather than part of
+/// `scan`: a request asserts to a controller that the record is yours, so it should
+/// take a second deliberate step after the evidence has been read.
+fn cmd_requests(args: &Args) -> Result<(), String> {
+    let id = load_identity(args)?;
+    let catalog = args.catalog()?;
+    let mut fetcher = fetcher(args)?;
+    let today = today();
+
+    let report = scan(
+        &id,
+        &catalog,
+        fetcher.as_mut(),
+        args.get("locality"),
+        &today,
+    );
+    let include_possible = args.has("include-possible");
+
+    let mut requests = Vec::new();
+    let mut held_back = 0;
+    for f in &report.findings {
+        if f.linkage.verdict != Verdict::Match && !include_possible {
+            held_back += 1;
+            continue;
+        }
+        requests.push(fp_request::build(&Disclosure {
+            source: &f.source,
+            record: &f.record,
+            linkage: &f.linkage,
+            protection: &f.protection,
+            verified: f.verified,
+            copies_from_title: f
+                .source
+                .copies_from
+                .as_deref()
+                .and_then(|id| catalog.get(id))
+                .map(|e| e.title.clone()),
+        }));
+    }
+
+    print!("{}", report::render_requests(&requests, held_back, &report));
+
+    if let Some(dir) = args.get("out-dir") {
+        std::fs::create_dir_all(dir).map_err(|e| format!("{dir}: {e}"))?;
+        for r in &requests {
+            let path = PathBuf::from(dir).join(r.filename());
+            std::fs::write(&path, &r.body).map_err(|e| format!("{}: {e}", path.display()))?;
+        }
+        eprintln!(
+            "fp: {} letter(s) written to {dir}. Read the warnings above before sending any.",
+            requests.len()
+        );
     }
     Ok(())
 }

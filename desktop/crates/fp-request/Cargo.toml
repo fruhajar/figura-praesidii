@@ -1,0 +1,13 @@
+[package]
+name = "fp-request"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+fp-core = { workspace = true }
+fp-correlate = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
