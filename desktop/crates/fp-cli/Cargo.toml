@@ -17,5 +17,6 @@ http = ["fp-lookup/http"]
 fp-core = { workspace = true }
 fp-correlate = { workspace = true }
 fp-lookup = { path = "../fp-lookup", default-features = false }
+fp-request = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

@@ -59,6 +59,19 @@ Then run a scan:
 fp scan --identity me.json --locality Praha --cache ~/.cache/figprae
 ```
 
+Then draft the letters for what it found:
+
+```sh
+fp requests --identity me.json --cache ~/.cache/figprae --out-dir letters/
+```
+
+One Czech letter per finding, grounded on the route that target admits: an Article 15
+access request where the entry is immovable, an Article 21 objection plus Article 17
+erasure against a mirror, delisting against a search engine. Drafting is a separate
+command on purpose, since sending one asserts to a controller that the record is yours.
+Records that are only *possibly* yours are held back unless you pass
+`--include-possible`.
+
 Other commands:
 
 ```sh
@@ -114,8 +127,10 @@ sharing a surname root, either name order, titles stripped out of the name field
   has nothing to run against until you add the sites that rank on your own name.
 - The insolvency register needs a form POST the fetcher cannot drive; the land registry
   gates person search behind a captcha.
-- Breach and broker exposure, drafted request letters, deadline tracking and the mobile
-  emission measurement are described in the docs and not implemented.
+- Letters are Czech only, and they are templates rather than legal advice: each one has
+  bracketed placeholders to fill in and should be read before it is sent.
+- Breach and broker exposure, deadline tracking and the mobile emission measurement are
+  described in the docs and not implemented.
 
 ## Documentation
 

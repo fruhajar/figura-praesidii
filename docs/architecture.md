@@ -11,6 +11,7 @@ has no route to one. Paths below are relative to `desktop/`.
 crates/fp-core        domain types: identity, records, sources, legal routes
 crates/fp-correlate   does this record describe the user, and on what evidence
 crates/fp-lookup      locality-scoped queries, fetching, extraction, the pipeline
+crates/fp-request     the letter per finding, in Czech
 crates/fp-cli         the `fp` binary
 example/              a runnable offline demo
 ```
@@ -75,10 +76,29 @@ Politeness is built in: GET only, one locality at a time, a per-host minimum int
 per-run request budget, an on-disk cache, and a user agent that says plainly it is one
 person looking themselves up.
 
+## Requests
+
+`fp requests` drafts one letter per finding. The route comes from `fp-core::protect`, so
+the pairing is decided once: Article 15 only against a register, because Article 17(3)(b)
+defeats erasure and a refusal costs the statutory month; Article 21 objection then
+Article 17(1)(c) against a mirror, naming the register it copies, since that is what
+breaks its legitimate-interest claim; Article 17 delisting on *Costeja* and *GC v CNIL*
+against a search engine; plain Article 17 where nothing competes.
+
+Two rules shape the text. The identification block is built from what the recipient
+already published, taken from the linkage evidence rather than from the identity file, so
+a letter never hands a controller an e-mail address or phone number they did not have.
+And warnings stay outside the letter: a file written with `--out-dir` is the letter and
+nothing else, while "this record could be a namesake's" and "this source is unverified"
+print to the terminal.
+
+Drafting is a separate command rather than part of `scan` because a request asserts to a
+controller that the record is the sender's, which deserves a second deliberate step.
+
 ## Not built yet
 
-Request generation, the findings store and its encryption, the ICS deadline export, HIBP,
-and the mirror sweep. The report ends by naming them rather than implying the free tier
+The findings store and its encryption, the ICS deadline export, HIBP, and the mirror
+sweep. The report ends by naming them rather than implying the free tier
 covers them.
 
 Known gaps, in the order they bite:

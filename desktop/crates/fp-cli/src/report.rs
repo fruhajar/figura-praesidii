@@ -6,6 +6,7 @@ use std::fmt::Write as _;
 use fp_core::{Attribute, Identity, Remedy};
 use fp_correlate::{Verdict, weights::Level};
 use fp_lookup::Report;
+use fp_request::Request;
 
 pub fn render(report: &Report, id: &Identity, locality: Option<&str>, today: &str) -> String {
     let mut out = String::new();
@@ -211,13 +212,15 @@ const NEXT_STEPS: &str = "\
 What to do with this
   1. Open every locator above and check the evidence by eye. A tool that says \"yours\"
      without showing why is guessing on your behalf.
-  2. Where the route is \"immovable\", do not send an erasure request: it will be
+  2. Run `fp requests` to draft the letter for each finding, grounded on the route
+     that target actually admits.
+  3. Where the route is \"immovable\", do not send an erasure request: it will be
      refused, and the refusal costs you a month. Send the Article 15 access request
      instead and keep the answer. It is the evidence base for every mirror.
-  3. Search your own name and note which mirrors rank above the register. Those are
+  4. Search your own name and note which mirrors rank above the register. Those are
      the entries worth a request, and the ones this run cannot find for you: add them
      to the catalog as commercial_mirror entries.
-  4. Keep this report off any synced folder. It is a dossier on you, assembled.
+  5. Keep this report off any synced folder. It is a dossier on you, assembled.
 ";
 
 /// The paid half, stated as plainly as the free half. The contact line is left unset on
@@ -225,11 +228,9 @@ What to do with this
 const OFFER: &str = "\n\
 A detailed review goes further
   This run covers public registers in one locality, correlated on name, date of birth
-  and address. It does not cover:
+  and address, with a drafted request per finding. It does not cover:
     - breach and broker exposure (HIBP, people-search sites, bidstream brokers)
     - the mirror sweep: finding every site that republishes your register entry
-    - drafted Czech-language Article 15 and 17 requests per recipient, with the
-      grounding each target actually admits
     - deadline tracking and escalation to ÚOOÚ when a controller ignores you
     - what your phone emits: advertising ID, tracker endpoints, Wi-Fi and BLE
       broadcasts, and which apps hold location and contacts
@@ -260,4 +261,74 @@ fn wrap(text: &str, width: usize) -> Vec<String> {
         lines.push(line);
     }
     lines
+}
+
+/// Letters, each preceded by what has to be checked before it is sent. The warnings
+/// stay out of the letter body so that a file written with `--out-dir` is the letter
+/// and nothing else.
+pub fn render_requests(requests: &[Request], held_back: usize, report: &Report) -> String {
+    let mut out = String::new();
+    let _ = writeln!(out, "Figura Praesidii, drafted requests\n");
+
+    if requests.is_empty() {
+        let _ = writeln!(
+            out,
+            "Nothing to draft. {} finding(s) in the last scan, {} of them not confident\n\
+             enough to write to a controller about.",
+            report.findings.len(),
+            held_back
+        );
+        return out;
+    }
+
+    for (i, r) in requests.iter().enumerate() {
+        let _ = writeln!(out, "{}", "=".repeat(78));
+        let _ = writeln!(
+            out,
+            "[{}] {} -> {}",
+            i + 1,
+            r.source_id,
+            r.recipient
+                .as_ref()
+                .map(|c| c.name.as_str())
+                .unwrap_or("recipient unknown")
+        );
+        if let Some(locator) = &r.locator {
+            let _ = writeln!(out, "    about: {locator}");
+        }
+        let _ = writeln!(
+            out,
+            "    reply due in {} days, extensible by {}",
+            r.deadline_days, r.extension_days
+        );
+        let _ = writeln!(out, "    file: {}", r.filename());
+        for w in &r.warnings {
+            for (n, line) in wrap(w, 70).into_iter().enumerate() {
+                let _ = writeln!(
+                    out,
+                    "    {} {line}",
+                    if n == 0 { "CHECK:" } else { "      " }
+                );
+            }
+        }
+        let _ = writeln!(out, "{}\n", "-".repeat(78));
+        let _ = writeln!(out, "{}", r.body);
+    }
+
+    let _ = writeln!(out, "{}", "=".repeat(78));
+    if held_back > 0 {
+        let _ = writeln!(
+            out,
+            "\n{held_back} finding(s) held back as only possibly yours. Pass\n\
+             --include-possible to draft those too, after reading their evidence in\n\
+             `fp scan`."
+        );
+    }
+    let _ = writeln!(
+        out,
+        "\nThese are templates, not legal advice. Read each one, fill in the bracketed\n\
+         placeholders, and keep a copy plus the date you sent it: the statutory clock\n\
+         starts on delivery."
+    );
+    out
 }

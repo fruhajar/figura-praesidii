@@ -57,12 +57,20 @@ the shipped catalog: a mirror entry asserts a legal claim about that company, so
 belongs to the user who adds it locally. A valid-looking IČO or phone number in a fixture
 should be synthetic, not copied from a real entity.
 
+**10. A letter discloses nothing the recipient did not already hold.** The
+identification block in `fp-request` is assembled from the linkage evidence, which means
+from values the source published, never from the identity file. Adding a field there
+would hand a controller a new identifier in the act of asking them to erase one. Pinned
+by `identification_discloses_nothing_the_source_did_not_publish` in
+`fp-request/tests/letters.rs`. Warnings also stay out of the letter body, so a file
+written with `--out-dir` is safe to send as-is.
+
 ## Verifying a change
 
 From `desktop/`:
 
 ```sh
-cargo test                  # 38 tests at the time of writing
+cargo test                  # 47 tests at the time of writing
 cargo clippy --all-targets  # expected to be silent
 cargo fmt --all
 ```

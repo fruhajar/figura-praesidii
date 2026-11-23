@@ -1,5 +1,11 @@
 [workspace]
-members = ["crates/fp-core", "crates/fp-correlate", "crates/fp-lookup", "crates/fp-cli"]
+members = [
+    "crates/fp-core",
+    "crates/fp-correlate",
+    "crates/fp-lookup",
+    "crates/fp-request",
+    "crates/fp-cli",
+]
 resolver = "3"
 
 [workspace.package]
@@ -13,5 +19,6 @@ repository = "https://github.com/fruhajar/figura-praesidii"
 fp-core = { path = "crates/fp-core" }
 fp-correlate = { path = "crates/fp-correlate" }
 fp-lookup = { path = "crates/fp-lookup" }
+fp-request = { path = "crates/fp-request" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
