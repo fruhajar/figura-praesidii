@@ -10,11 +10,12 @@ pub mod fetch;
 pub mod html;
 pub mod query;
 pub mod scan;
+pub mod xml;
 
 pub use catalog::{Catalog, SourceEntry};
 pub use fetch::{Cache, FetchError, Fetcher, OfflineFetcher};
 pub use query::Query;
-pub use scan::{Finding, Report, scan};
+pub use scan::{Finding, Report, ScanOptions, scan};
 
 #[cfg(feature = "http")]
 pub use fetch::HttpFetcher;

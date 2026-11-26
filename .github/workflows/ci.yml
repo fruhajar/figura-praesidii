@@ -52,7 +52,10 @@ jobs:
           out=$(cargo run --locked -q -p fp-cli -- scan \
             --identity example/me.json \
             --catalog example/catalog.json \
-            --offline --cache example/cache)
+            --offline --cache example/cache \
+            --dump example/dump-sample.xml)
           echo "$out"
-          echo "$out" | grep -q '^YOURS (2)' || { echo "::error::demo should find 2 records"; exit 1; }
-          echo "$out" | grep -q '2 record(s) carried your name' || { echo "::error::demo should rule out 2 records"; exit 1; }
+          echo "$out" | grep -q '^YOURS (3)' || { echo "::error::demo should find 3 records"; exit 1; }
+          echo "$out" | grep -q '3 record(s) carried your name' || { echo "::error::demo should rule out 3 records"; exit 1; }
+          echo "$out" | grep -q 'Read 4 person record(s)' || { echo "::error::demo should read 4 officers from the dump"; exit 1; }
+          echo "$out" | grep -q '2 carried another' || { echo "::error::demo should block 2 officers by surname"; exit 1; }

@@ -1,11 +1,57 @@
 {
   "sources": [
     {
+      "id": "dataor.justice.cz",
+      "title": "Veřejné rejstříky, otevřená data (Ministerstvo spravedlnosti ČR)",
+      "kind": "public_register",
+      "verified": false,
+      "notes": "The register's own bulk open data, which carries the officer records this project is about: given name, surname, date of birth and address. Read from a file you download once, so there is no scraping and no rate limit to respect, and the registration court in the filename does the locality scoping. The element names below are unverified: they were written without access to a real dump, so check one against `fp sources` output and correct this entry before trusting a clean result.",
+      "dump": {
+        "download_url": "https://dataor.justice.cz/",
+        "file_pattern": "ks-actual-{court}-{year}.xml, e.g. ks-actual-praha-2026.xml",
+        "max_records": 10000
+      },
+      "extract": {
+        "kind": "xml",
+        "subject_element": "ZAPIS",
+        "record_element": "STATUTARNI_ORGAN_CLEN",
+        "locator_template": "https://ares.gov.cz/ekonomicke-subjekty?ico={ICO}",
+        "fields": [
+          {
+            "kind": "name",
+            "template": "{JMENO} {PRIJMENI}"
+          },
+          {
+            "kind": "birth_date",
+            "template": "{DATUM_NAROZENI}"
+          },
+          {
+            "kind": "address",
+            "template": "{ULICE} {CISLO_PO}/{CISLO_OR}, {MESTO}, {PSC}"
+          },
+          {
+            "kind": "funkce",
+            "template": "{FUNKCE}"
+          }
+        ],
+        "page_fields": [
+          {
+            "kind": "obchodní firma",
+            "template": "{NAZEV}"
+          },
+          {
+            "kind": "ico",
+            "template": "{ICO}"
+          }
+        ]
+      }
+    },
+    {
       "id": "or.justice.cz",
       "title": "Obchodní rejstřík (Ministerstvo spravedlnosti ČR)",
       "kind": "public_register",
       "verified": false,
-      "notes": "Full extracts print a company officer's name, date of birth and home address. URL template and labels are unverified: no network access from the machine that wrote them. Run `fp verify-sources` before trusting a clean result.",
+      "notes": "Superseded by dataor.justice.cz for anything the dumps cover: the open data has a stable schema and needs no politeness budget. Kept for the cases a dump cannot answer, and still unverified.",
       "query": {
         "url": "https://or.justice.cz/ias/ui/rejstrik-$firma?nazev={name}&obec={locality}&polozek=50&typHledani=STARTS_WITH&jenPlatne=VSECHNY",
         "requires_locality": false,
@@ -14,21 +60,58 @@
       "extract": {
         "record_split": "Jméno:",
         "fields": [
-          { "kind": "name", "labels": ["Jméno:", "Jméno a příjmení:"] },
-          { "kind": "birth_date", "labels": ["dat. nar.", "Datum narození:"] },
-          { "kind": "address", "labels": ["Bydliště:", "Adresa:", "Sídlo:"] },
-          { "kind": "funkce", "labels": ["Funkce:"] }
+          {
+            "kind": "name",
+            "labels": [
+              "Jméno:",
+              "Jméno a příjmení:"
+            ]
+          },
+          {
+            "kind": "birth_date",
+            "labels": [
+              "dat. nar.",
+              "Datum narození:"
+            ]
+          },
+          {
+            "kind": "address",
+            "labels": [
+              "Bydliště:",
+              "Adresa:",
+              "Sídlo:"
+            ]
+          },
+          {
+            "kind": "funkce",
+            "labels": [
+              "Funkce:"
+            ]
+          }
         ],
         "page_fields": [
-          { "kind": "obchodní firma", "labels": ["Obchodní firma:", "Název:"] },
-          { "kind": "ico", "labels": ["IČO:", "IČ:"] }
+          {
+            "kind": "obchodní firma",
+            "labels": [
+              "Obchodní firma:",
+              "Název:"
+            ]
+          },
+          {
+            "kind": "ico",
+            "labels": [
+              "IČO:",
+              "IČ:"
+            ]
+          }
         ]
       },
       "controller": {
         "name": "Ministerstvo spravedlnosti ČR",
         "email": "podatelna@msp.justice.cz",
         "postal": "Vyšehradská 16, 128 10 Praha 2"
-      }
+      },
+      "enabled": false
     },
     {
       "id": "rzp.cz",
@@ -44,10 +127,35 @@
       "extract": {
         "record_split": "Jméno a příjmení",
         "fields": [
-          { "kind": "name", "labels": ["Jméno a příjmení", "Podnikatel:"] },
-          { "kind": "birth_date", "labels": ["Datum narození", "Dat. narození"] },
-          { "kind": "address", "labels": ["Sídlo", "Adresa sídla", "Místo podnikání"] },
-          { "kind": "ico", "labels": ["IČO", "Identifikační číslo"] }
+          {
+            "kind": "name",
+            "labels": [
+              "Jméno a příjmení",
+              "Podnikatel:"
+            ]
+          },
+          {
+            "kind": "birth_date",
+            "labels": [
+              "Datum narození",
+              "Dat. narození"
+            ]
+          },
+          {
+            "kind": "address",
+            "labels": [
+              "Sídlo",
+              "Adresa sídla",
+              "Místo podnikání"
+            ]
+          },
+          {
+            "kind": "ico",
+            "labels": [
+              "IČO",
+              "Identifikační číslo"
+            ]
+          }
         ]
       },
       "controller": {
@@ -63,12 +171,32 @@
       "verified": false,
       "enabled": false,
       "notes": "Person search is a form POST, which the GET-only fetcher cannot drive. Left in the catalog so the gap is visible rather than forgotten.",
-      "query": { "url": "https://isir.justice.cz/isir/ueu/evidence_upadcu_detail.do?jmeno={given}&prijmeni={surname}" },
+      "query": {
+        "url": "https://isir.justice.cz/isir/ueu/evidence_upadcu_detail.do?jmeno={given}&prijmeni={surname}"
+      },
       "extract": {
         "fields": [
-          { "kind": "name", "labels": ["Jméno", "Dlužník"] },
-          { "kind": "birth_date", "labels": ["Datum narození", "RČ/IČO"] },
-          { "kind": "address", "labels": ["Adresa", "Bydliště"] }
+          {
+            "kind": "name",
+            "labels": [
+              "Jméno",
+              "Dlužník"
+            ]
+          },
+          {
+            "kind": "birth_date",
+            "labels": [
+              "Datum narození",
+              "RČ/IČO"
+            ]
+          },
+          {
+            "kind": "address",
+            "labels": [
+              "Adresa",
+              "Bydliště"
+            ]
+          }
         ]
       }
     },
@@ -87,12 +215,31 @@
       "extract": {
         "record_split": "Jméno",
         "fields": [
-          { "kind": "name", "labels": ["Jméno"] },
-          { "kind": "birth_date", "labels": ["Datum narození", "Narozen"] },
-          { "kind": "address", "labels": ["Adresa", "Bydliště"] }
+          {
+            "kind": "name",
+            "labels": [
+              "Jméno"
+            ]
+          },
+          {
+            "kind": "birth_date",
+            "labels": [
+              "Datum narození",
+              "Narozen"
+            ]
+          },
+          {
+            "kind": "address",
+            "labels": [
+              "Adresa",
+              "Bydliště"
+            ]
+          }
         ]
       },
-      "controller": { "name": "fill in from the site's imprint" }
+      "controller": {
+        "name": "fill in from the site's imprint"
+      }
     },
     {
       "id": "search-engine",
@@ -101,8 +248,12 @@
       "verified": false,
       "enabled": false,
       "notes": "No automated queries: scraping a results page breaks the terms and gets the user blocked for nothing. Search your name by hand and paste the results in as records; the delisting route is then generated like any other.",
-      "query": { "url": "" },
-      "extract": { "fields": [] }
+      "query": {
+        "url": ""
+      },
+      "extract": {
+        "fields": []
+      }
     }
   ]
 }

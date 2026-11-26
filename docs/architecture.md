@@ -10,7 +10,7 @@ has no route to one. Paths below are relative to `desktop/`.
 ```
 crates/fp-core        domain types: identity, records, sources, legal routes
 crates/fp-correlate   does this record describe the user, and on what evidence
-crates/fp-lookup      locality-scoped queries, fetching, extraction, the pipeline
+crates/fp-lookup      locality-scoped queries, open data, fetching, extraction, the pipeline
 crates/fp-request     the letter per finding, in Czech
 crates/fp-cli         the `fp` binary
 example/              a runnable offline demo
@@ -67,14 +67,32 @@ result that looks exactly like a clean one. `fp verify-sources` checks reachabil
 label presence from a machine that can reach the hosts; a human still has to read a page
 before marking anything verified.
 
-Extraction flattens HTML to labelled lines rather than parsing it, because the Czech
-registers' label text outlives their markup. Page-level fields (the company a full
+There are two extraction paths, chosen per source by `extract.kind`.
+
+**Open data, for registers.** The Czech registers publish officer records as bulk
+XML, so a dump is read from a file the user downloads rather than fetched: no rate limit
+to respect, a stable schema, and the registration court in the filename doing the
+locality scoping. The reader streams the file, so a court-year never lands in memory,
+and both a record cap and a byte cap are reported rather than silently truncating.
+Element names live in the catalog like everything else, because no dump could be read
+from the machine that wrote them.
+
+Two details carry weight here. A **surname block** runs before anything is kept: one
+court-year holds hundreds of thousands of strangers, and blocking is a speed trick in
+record linkage but the privacy rule here, since those people must never reach the user's
+report. And the **locator is rendered from the subject's own fields**
+(`https://ares.gov.cz/ekonomicke-subjekty?ico={ICO}`), so a request cites the register
+entry rather than a file path on the user's laptop.
+
+**Labels, for everything else.** Extraction flattens HTML to labelled lines rather than
+parsing it, because the Czech registers' label text outlives their markup. Page-level fields (the company a full
 extract is about) are read separately from per-person fields, so one officer's company
 cannot leak onto the next officer's record.
 
-Politeness is built in: GET only, one locality at a time, a per-host minimum interval, a
-per-run request budget, an on-disk cache, and a user agent that says plainly it is one
-person looking themselves up.
+Politeness is built in on the fetching path: GET only, one locality at a time, a
+per-host minimum interval, a per-run request budget, an on-disk cache, and a user agent
+that says plainly it is one person looking themselves up. The open-data path sidesteps
+all of it by not making requests.
 
 ## Requests
 

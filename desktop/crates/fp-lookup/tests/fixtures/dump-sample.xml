@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Synthetic stand-in for a dataor.justice.cz court-year dump. The element names
+     follow the documented shape; nobody has checked them against a real file, which is
+     exactly why they live in the catalog rather than in code. All subjects are
+     fictional. -->
+<VYPIS>
+  <ZAPIS>
+    <ICO>00000019</ICO>
+    <NAZEV>Pek&#225;rna Nusle s.r.o.</NAZEV>
+    <SIDLO>
+      <ULICE>Nuselsk&#225;</ULICE><CISLO_PO>123</CISLO_PO><CISLO_OR>45</CISLO_OR>
+      <MESTO>Praha 4</MESTO><PSC>140 00</PSC>
+    </SIDLO>
+    <STATUTARNI_ORGAN>
+      <POCET_CLENU>2</POCET_CLENU>
+      <STATUTARNI_ORGAN_CLEN>
+        <FUNKCE>jednatel</FUNKCE>
+        <OSOBA>
+          <JMENO>Jana</JMENO><PRIJMENI>Dvo&#345;&#225;kov&#225;</PRIJMENI>
+          <DATUM_NAROZENI>1981-03-14</DATUM_NAROZENI>
+          <ADRESA>
+            <ULICE>Nuselsk&#225;</ULICE><CISLO_PO>123</CISLO_PO><CISLO_OR>45</CISLO_OR>
+            <MESTO>Praha 4</MESTO><PSC>140 00</PSC>
+          </ADRESA>
+        </OSOBA>
+      </STATUTARNI_ORGAN_CLEN>
+      <STATUTARNI_ORGAN_CLEN>
+        <FUNKCE>prokurista</FUNKCE>
+        <OSOBA>
+          <JMENO>Petr</JMENO><PRIJMENI>Nov&#225;k</PRIJMENI>
+          <DATUM_NAROZENI>1969-05-08</DATUM_NAROZENI>
+          <ADRESA>
+            <ULICE>Nuselsk&#225;</ULICE><CISLO_PO>123</CISLO_PO><CISLO_OR>45</CISLO_OR>
+            <MESTO>Praha 4</MESTO><PSC>140 00</PSC>
+          </ADRESA>
+        </OSOBA>
+      </STATUTARNI_ORGAN_CLEN>
+    </STATUTARNI_ORGAN>
+  </ZAPIS>
+  <ZAPIS>
+    <ICO>27074358</ICO>
+    <NAZEV>Jin&#225; firma a.s.</NAZEV>
+    <SIDLO><ULICE>Veve&#345;&#237;</ULICE><CISLO_PO>7</CISLO_PO><MESTO>Brno</MESTO><PSC>602 00</PSC></SIDLO>
+    <STATUTARNI_ORGAN>
+      <STATUTARNI_ORGAN_CLEN>
+        <FUNKCE>&#269;lenka dozor&#269;&#237; rady</FUNKCE>
+        <OSOBA>
+          <JMENO>Jana</JMENO><PRIJMENI>Dvo&#345;&#225;kov&#225;</PRIJMENI>
+          <DATUM_NAROZENI>1974-09-02</DATUM_NAROZENI>
+          <ADRESA><ULICE>Veve&#345;&#237;</ULICE><CISLO_PO>7</CISLO_PO><MESTO>Brno</MESTO><PSC>602 00</PSC></ADRESA>
+        </OSOBA>
+      </STATUTARNI_ORGAN_CLEN>
+    </STATUTARNI_ORGAN>
+  </ZAPIS>
+  <ZAPIS>
+    <ICO>45274649</ICO>
+    <NAZEV>T&#345;et&#237; firma s.r.o.</NAZEV>
+    <SIDLO><MESTO>Praha 1</MESTO><PSC>110 00</PSC></SIDLO>
+    <STATUTARNI_ORGAN>
+      <STATUTARNI_ORGAN_CLEN>
+        <FUNKCE>jednatel</FUNKCE>
+        <OSOBA>
+          <JMENO>Marie</JMENO><PRIJMENI>Svobodov&#225;</PRIJMENI>
+          <DATUM_NAROZENI>1990-01-20</DATUM_NAROZENI>
+          <ADRESA><ULICE>Dlouh&#225;</ULICE><CISLO_PO>5</CISLO_PO><MESTO>Praha 1</MESTO><PSC>110 00</PSC></ADRESA>
+        </OSOBA>
+      </STATUTARNI_ORGAN_CLEN>
+    </STATUTARNI_ORGAN>
+  </ZAPIS>
+</VYPIS>

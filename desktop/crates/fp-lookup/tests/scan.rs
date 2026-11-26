@@ -1,7 +1,7 @@
 use std::fs;
 
 use fp_core::Identity;
-use fp_lookup::{Cache, Catalog, OfflineFetcher, scan};
+use fp_lookup::{Cache, Catalog, OfflineFetcher, ScanOptions, scan};
 
 /// Two officers on one results page: the user, and a namesake born in another year.
 const PAGE: &str = r#"
@@ -66,7 +66,12 @@ fn finds_the_user_and_drops_the_namesake() {
     cache.write(&url, PAGE).unwrap();
 
     let mut fetcher = OfflineFetcher::new(&dir);
-    let report = scan(&id, &catalog, &mut fetcher, None, "2026-11-18");
+    let opts = ScanOptions {
+        locality: None,
+        observed: "2026-11-18",
+        dumps: &[],
+    };
+    let report = scan(&id, &catalog, &mut fetcher, &opts);
 
     assert_eq!(report.findings.len(), 1, "{report:#?}");
     assert_eq!(report.excluded, 1);
@@ -86,7 +91,12 @@ fn finds_the_user_and_drops_the_namesake() {
 #[test]
 fn an_offline_miss_is_an_error_not_an_empty_result() {
     let mut fetcher = OfflineFetcher::new(std::env::temp_dir().join("fp-scan-empty"));
-    let report = scan(&me(), &catalog(), &mut fetcher, Some("praha"), "2026-11-18");
+    let opts = ScanOptions {
+        locality: Some("praha"),
+        observed: "2026-11-18",
+        dumps: &[],
+    };
+    let report = scan(&me(), &catalog(), &mut fetcher, &opts);
     assert!(report.findings.is_empty());
     assert_eq!(report.errors.len(), 1);
     assert!(report.errors[0].1.contains("offline"));

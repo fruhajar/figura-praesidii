@@ -1,22 +1,102 @@
 {
   "sources": [
     {
+      "id": "register.dump.test",
+      "title": "Otevřená data rejstříku (demo stand-in)",
+      "kind": "public_register",
+      "verified": true,
+      "dump": {
+        "download_url": "https://dataor.justice.cz/",
+        "file_pattern": "ks-actual-{court}-{year}.xml"
+      },
+      "extract": {
+        "kind": "xml",
+        "subject_element": "ZAPIS",
+        "record_element": "STATUTARNI_ORGAN_CLEN",
+        "locator_template": "https://ares.gov.cz/ekonomicke-subjekty?ico={ICO}",
+        "fields": [
+          {
+            "kind": "name",
+            "template": "{JMENO} {PRIJMENI}"
+          },
+          {
+            "kind": "birth_date",
+            "template": "{DATUM_NAROZENI}"
+          },
+          {
+            "kind": "address",
+            "template": "{ULICE} {CISLO_PO}/{CISLO_OR}, {MESTO}, {PSC}"
+          },
+          {
+            "kind": "funkce",
+            "template": "{FUNKCE}"
+          }
+        ],
+        "page_fields": [
+          {
+            "kind": "obchodní firma",
+            "template": "{NAZEV}"
+          },
+          {
+            "kind": "ico",
+            "template": "{ICO}"
+          }
+        ]
+      },
+      "controller": {
+        "name": "Ministerstvo spravedlnosti ČR",
+        "email": "podatelna@msp.justice.cz"
+      }
+    },
+    {
       "id": "register.test",
       "title": "Obchodní rejstřík (demo stand-in)",
       "kind": "public_register",
       "verified": true,
-      "query": { "url": "https://register.test/search?nazev={name}&obec={locality}" },
+      "query": {
+        "url": "https://register.test/search?nazev={name}&obec={locality}"
+      },
       "extract": {
         "record_split": "Jméno:",
         "fields": [
-          { "kind": "name", "labels": ["Jméno:"] },
-          { "kind": "birth_date", "labels": ["dat. nar."] },
-          { "kind": "address", "labels": ["Bydliště:"] },
-          { "kind": "funkce", "labels": ["Funkce:"] }
+          {
+            "kind": "name",
+            "labels": [
+              "Jméno:"
+            ]
+          },
+          {
+            "kind": "birth_date",
+            "labels": [
+              "dat. nar."
+            ]
+          },
+          {
+            "kind": "address",
+            "labels": [
+              "Bydliště:"
+            ]
+          },
+          {
+            "kind": "funkce",
+            "labels": [
+              "Funkce:"
+            ]
+          }
         ],
         "page_fields": [
-          { "kind": "obchodní firma", "labels": ["Obchodní firma:"] },
-          { "kind": "ico", "labels": ["IČO:"] }
+          {
+            "kind": "obchodní firma",
+            "labels": [
+              "Obchodní firma:"
+            ]
+          },
+          {
+            "kind": "ico",
+            "labels": [
+              "IČO:"
+            ]
+          }
         ]
       },
       "controller": {
@@ -30,16 +110,37 @@
       "kind": "commercial_mirror",
       "verified": true,
       "copies_from": "register.test",
-      "query": { "url": "https://mirror.test/osoba?jmeno={name}&mesto={locality}" },
+      "query": {
+        "url": "https://mirror.test/osoba?jmeno={name}&mesto={locality}"
+      },
       "extract": {
         "record_split": "Jméno",
         "fields": [
-          { "kind": "name", "labels": ["Jméno"] },
-          { "kind": "birth_date", "labels": ["Narozena", "Narozen"] },
-          { "kind": "address", "labels": ["Adresa"] }
+          {
+            "kind": "name",
+            "labels": [
+              "Jméno"
+            ]
+          },
+          {
+            "kind": "birth_date",
+            "labels": [
+              "Narozena",
+              "Narozen"
+            ]
+          },
+          {
+            "kind": "address",
+            "labels": [
+              "Adresa"
+            ]
+          }
         ]
       },
-      "controller": { "name": "Demo Mirror s.r.o.", "email": "info@mirror.test" }
+      "controller": {
+        "name": "Demo Mirror s.r.o.",
+        "email": "info@mirror.test"
+      }
     }
   ]
 }

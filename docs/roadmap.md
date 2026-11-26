@@ -55,6 +55,13 @@ not a stable position if it depends on labour.
 
 ### E1. Registers via official open data
 
+**Partly done.** The dump half is built: `extract.kind: "xml"` streams a downloaded
+dump, blocks on the surname before keeping anything, renders the locator from the
+subject's IČO, and reports its caps. `dataor.justice.cz` is in the catalog and the
+or.justice.cz scrape is disabled behind it. Still to do: the ARES REST service, which is
+what covers sole traders where no dump exists, and verifying the element names against a
+real file.
+
 Replace the or.justice.cz scrape with the `dataor.justice.cz` dumps, and the
 session-based RŽP form with the ARES REST service. The registration court in the dump
 filename does locality scoping for free, which is exactly the free tier's selling point.

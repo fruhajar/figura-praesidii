@@ -59,6 +59,21 @@ Then run a scan:
 fp scan --identity me.json --locality Praha --cache ~/.cache/figprae
 ```
 
+### Registers come from their open data
+
+The Czech registers publish officer records as bulk open data, so `fp` reads a file you
+download rather than scraping a web interface. Run `fp sources` for the download link,
+put the file somewhere, and point the scan at it:
+
+```sh
+fp scan --identity me.json --dump ~/dumps/ks-actual-praha-2026.xml
+```
+
+The registration court in the filename is the locality scoping. Nothing is fetched, so
+there is no rate limit to respect, and the schema is stable in a way guessed HTML labels
+never are. Scraping is still how the commercial mirrors are read, because none of them
+publish open data.
+
 Then draft the letters for what it found:
 
 ```sh
@@ -87,11 +102,13 @@ is fictional and the two sources are stand-ins served from a cache:
 cargo run --manifest-path desktop/Cargo.toml -p fp-cli -- scan \
   --identity desktop/example/me.json \
   --catalog desktop/example/catalog.json \
-  --offline --cache desktop/example/cache
+  --offline --cache desktop/example/cache \
+  --dump desktop/example/dump-sample.xml
 ```
 
-It finds the register entry and the mirror copying it, names the route for each, and
-discards two records belonging to other people.
+It finds her entry in the register's open data, the same entry scraped from the
+register's web interface, and the mirror copying it; names the route for each; and
+discards three records belonging to other people.
 
 ### The report is a dossier on you
 
@@ -121,8 +138,9 @@ sharing a surname root, either name order, titles stripped out of the name field
 
 ## Limitations
 
-- Every URL template in the catalog is unverified. Run `fp verify-sources` from a
-  machine that can reach the hosts, and read a page by hand before trusting it.
+- Every URL template and every open-data element name in the catalog is unverified. Run
+  `fp verify-sources` from a machine that can reach the hosts, and read a real dump
+  before trusting the element names in `sources.json`.
 - No commercial mirror ships in the catalog, so the route where erasure actually bites
   has nothing to run against until you add the sites that rank on your own name.
 - The insolvency register needs a form POST the fetcher cannot drive; the land registry

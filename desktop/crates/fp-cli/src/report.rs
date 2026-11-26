@@ -47,7 +47,28 @@ pub fn render(report: &Report, id: &Identity, locality: Option<&str>, today: &st
         "  {} record(s) had too little in common to report.",
         report.dismissed
     );
+    if report.dump_seen > 0 {
+        let _ = writeln!(
+            out,
+            "  Read {} person record(s) out of the register's open data; {} carried \
+             another\n  surname and were dropped without ever being kept.",
+            report.dump_seen, report.dump_blocked
+        );
+    }
     let _ = writeln!(out);
+
+    if !report.truncated.is_empty() {
+        let _ = writeln!(out, "Stopped early");
+        for t in &report.truncated {
+            let _ = writeln!(out, "  {t}");
+        }
+        let _ = writeln!(
+            out,
+            "  A size limit ended the read, so finding nothing here rules nothing out.\n  \
+             Raise max_records or max_bytes on the source, or use a narrower dump."
+        );
+        let _ = writeln!(out);
+    }
 
     if !report.skipped.is_empty() {
         let _ = writeln!(out, "Not queried");

@@ -7,6 +7,7 @@
 
 use std::fs;
 use std::io;
+use std::io::BufReader;
 use std::path::Path;
 
 use fp_core::{Attribute, Controller, Record, Source, SourceKind};
@@ -14,6 +15,15 @@ use serde::{Deserialize, Serialize};
 
 use crate::html;
 use crate::query::{Query, encode};
+use crate::xml;
+
+#[derive(Debug)]
+pub struct DumpOutcome {
+    pub records: Vec<Record>,
+    pub seen: usize,
+    pub blocked: usize,
+    pub truncated: bool,
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Catalog {
@@ -32,7 +42,12 @@ pub struct SourceEntry {
     /// stays visible.
     #[serde(default = "default_true")]
     pub enabled: bool,
-    pub query: QuerySpec,
+    /// For sources queried over the network. Absent for a bulk dump.
+    #[serde(default)]
+    pub query: Option<QuerySpec>,
+    /// For sources read from a file the user downloaded once.
+    #[serde(default)]
+    pub dump: Option<DumpSpec>,
     pub extract: ExtractSpec,
     #[serde(default)]
     pub controller: Option<Controller>,
@@ -63,11 +78,57 @@ fn default_true() -> bool {
     true
 }
 
+/// Bulk open data, read from disk. No URL is fetched: these files are large, published
+/// for exactly this use, and downloading one is the user's deliberate step.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DumpSpec {
+    /// Where the user gets the file. Printed when no dump has been supplied.
+    pub download_url: String,
+    /// Shape of the filename, for the same message: `ks-actual-{court}-{year}.xml`.
+    #[serde(default)]
+    pub file_pattern: Option<String>,
+    #[serde(default = "default_max_bytes")]
+    pub max_bytes: u64,
+    #[serde(default = "default_max_records")]
+    pub max_records: usize,
+}
+
+fn default_max_bytes() -> u64 {
+    // A court-year of the business register is far larger than this; the cap exists so
+    // a truncated read is reported rather than a laptop swapping.
+    4 * 1024 * 1024 * 1024
+}
+
+fn default_max_records() -> usize {
+    10_000
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum ExtractKind {
+    /// Flattened HTML, matched on label text.
+    #[default]
+    Labels,
+    /// Streamed XML, matched on element names.
+    Xml,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExtractSpec {
+    #[serde(default)]
+    pub kind: ExtractKind,
     /// A line that begins a new person on the page. Absent means the page is one record.
     #[serde(default)]
     pub record_split: Option<String>,
+    /// XML only: the element enclosing one subject, and the element that is one person.
+    #[serde(default)]
+    pub subject_element: Option<String>,
+    #[serde(default)]
+    pub record_element: Option<String>,
+    /// XML only: the register entry a dump record belongs to, rendered from the
+    /// subject's own values, e.g. `https://ares.gov.cz/ekonomicke-subjekty?ico={ICO}`.
+    #[serde(default)]
+    pub locator_template: Option<String>,
     /// Fields belonging to the person.
     pub fields: Vec<FieldSpec>,
     /// Fields belonging to the page rather than to any one person: the company a full
@@ -82,7 +143,12 @@ pub struct FieldSpec {
     /// `name`, `birth_date`, `address`, `email`, `phone`, `ico`, or any label for a
     /// field that is reported but never scored.
     pub kind: String,
+    /// Labels mode: the label text to read the value from.
+    #[serde(default)]
     pub labels: Vec<String>,
+    /// XML mode: `{ELEMENT}` placeholders assembled into the value.
+    #[serde(default)]
+    pub template: Option<String>,
 }
 
 impl Catalog {
@@ -115,10 +181,11 @@ impl SourceEntry {
 
     /// `None` when this source cannot answer the query, which is not an error.
     pub fn url_for(&self, q: &Query) -> Option<String> {
-        if self.query.requires_locality && q.locality.is_none() {
+        let spec = self.query.as_ref()?;
+        if spec.requires_locality && q.locality.is_none() {
             return None;
         }
-        let mut url = self.query.url.clone();
+        let mut url = spec.url.clone();
         // A missing name leaves nothing to search for; a missing locality or year just
         // widens the query, so those placeholders collapse to nothing.
         for (key, value, essential) in [
@@ -183,6 +250,72 @@ impl SourceEntry {
         out
     }
 
+    pub fn min_interval_ms(&self) -> u64 {
+        self.query
+            .as_ref()
+            .map(|q| q.min_interval_ms)
+            .unwrap_or_else(default_interval)
+    }
+
+    /// Records from one downloaded dump. Streams the file, blocks on the surname before
+    /// anything is kept, and reports what it had to drop.
+    pub fn dump_records(
+        &self,
+        path: &Path,
+        observed: &str,
+        block: &xml::Block,
+    ) -> Result<DumpOutcome, String> {
+        let spec = self.dump.as_ref().ok_or("source has no dump spec")?;
+        let record_element = self
+            .extract
+            .record_element
+            .as_deref()
+            .ok_or("xml extraction needs extract.record_element")?;
+
+        let file = fs::File::open(path).map_err(|e| format!("{}: {e}", path.display()))?;
+        let plan = xml::XmlPlan {
+            subject_element: self.extract.subject_element.as_deref(),
+            record_element,
+            record_fields: &self.extract.fields,
+            subject_fields: &self.extract.page_fields,
+            locator_template: self.extract.locator_template.as_deref(),
+        };
+        let limits = xml::Limits {
+            max_bytes: spec.max_bytes,
+            max_records: spec.max_records,
+        };
+        let extracted = xml::extract(BufReader::new(file), &plan, &limits, block)?;
+
+        let records = extracted
+            .hits
+            .into_iter()
+            .enumerate()
+            .map(|(i, hit)| Record {
+                id: format!("{}-{}", self.id, i + 1),
+                source: self.id.clone(),
+                locator: hit.locator.or_else(|| Some(path.display().to_string())),
+                observed: Some(observed.to_string()),
+                attrs: hit.attrs,
+            })
+            .collect();
+
+        Ok(DumpOutcome {
+            records,
+            seen: extracted.seen,
+            blocked: extracted.blocked,
+            truncated: extracted.truncated,
+        })
+    }
+
+    /// Where to get the file, for the message printed when none was supplied.
+    pub fn dump_hint(&self) -> Option<String> {
+        let spec = self.dump.as_ref()?;
+        Some(match &spec.file_pattern {
+            Some(pattern) => format!("{} (filenames look like {pattern})", spec.download_url),
+            None => spec.download_url.clone(),
+        })
+    }
+
     fn chunks(&self, lines: &[String]) -> Vec<Vec<String>> {
         let Some(marker) = &self.extract.record_split else {
             return vec![lines.to_vec()];
@@ -233,7 +366,10 @@ mod tests {
             birth_year: None,
         };
         assert!(entry.url_for(&q).is_some());
-        let locality_only = c.sources.iter().find(|s| s.query.requires_locality);
+        let locality_only = c
+            .sources
+            .iter()
+            .find(|s| s.query.as_ref().is_some_and(|q| q.requires_locality));
         if let Some(entry) = locality_only {
             assert!(entry.url_for(&q).is_none());
         }

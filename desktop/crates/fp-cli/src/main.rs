@@ -9,7 +9,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use fp_core::Identity;
 use fp_correlate::Verdict;
-use fp_lookup::{Catalog, Fetcher, OfflineFetcher, Query, scan};
+use fp_lookup::{Catalog, Fetcher, OfflineFetcher, Query, ScanOptions, scan};
 use fp_request::Disclosure;
 
 const USAGE: &str = "\
@@ -25,6 +25,8 @@ Options
   --catalog <file>    source catalog; the built-in one is used when omitted
   --locality <town>   scope the search; defaults to the town in your identity file
   --cache <dir>       store and reuse fetched pages here
+  --dump <file>       a register open-data file to read (see `fp sources`)
+  --dumps <dir>       read every .xml in this directory as a register dump
   --offline           serve only from the cache, send nothing
   --budget <n>        maximum requests per run (default 20)
   --out <file>        also write the report to a file. Off by default: the report is a
@@ -120,6 +122,33 @@ fn load_identity(args: &Args) -> Result<Identity, String> {
     serde_json::from_str(&text).map_err(|e| format!("{path}: {e}"))
 }
 
+/// Bulk dumps the user has downloaded. Read from disk, never fetched.
+fn dumps(args: &Args) -> Result<Vec<PathBuf>, String> {
+    let mut out = Vec::new();
+    if let Some(file) = args.get("dump") {
+        out.push(PathBuf::from(file));
+    }
+    if let Some(dir) = args.get("dumps") {
+        let entries = std::fs::read_dir(dir).map_err(|e| format!("{dir}: {e}"))?;
+        for entry in entries {
+            let path = entry.map_err(|e| format!("{dir}: {e}"))?.path();
+            if path
+                .extension()
+                .is_some_and(|e| e.eq_ignore_ascii_case("xml"))
+            {
+                out.push(path);
+            }
+        }
+        out.sort();
+    }
+    for path in &out {
+        if !path.is_file() {
+            return Err(format!("{}: not a file", path.display()));
+        }
+    }
+    Ok(out)
+}
+
 fn fetcher(args: &Args) -> Result<Box<dyn Fetcher>, String> {
     let cache = args.get("cache").map(fp_lookup::Cache::new);
     let budget: u32 = args
@@ -151,13 +180,12 @@ fn cmd_scan(args: &Args) -> Result<(), String> {
     let mut fetcher = fetcher(args)?;
     let today = today();
 
-    let report = scan(
-        &id,
-        &catalog,
-        fetcher.as_mut(),
-        args.get("locality"),
-        &today,
-    );
+    let opts = ScanOptions {
+        locality: args.get("locality"),
+        observed: &today,
+        dumps: &dumps(args)?,
+    };
+    let report = scan(&id, &catalog, fetcher.as_mut(), &opts);
     let text = report::render(&report, &id, args.get("locality"), &today);
     print!("{text}");
 
@@ -177,13 +205,12 @@ fn cmd_requests(args: &Args) -> Result<(), String> {
     let mut fetcher = fetcher(args)?;
     let today = today();
 
-    let report = scan(
-        &id,
-        &catalog,
-        fetcher.as_mut(),
-        args.get("locality"),
-        &today,
-    );
+    let opts = ScanOptions {
+        locality: args.get("locality"),
+        observed: &today,
+        dumps: &dumps(args)?,
+    };
+    let report = scan(&id, &catalog, fetcher.as_mut(), &opts);
     let include_possible = args.has("include-possible");
 
     let mut requests = Vec::new();
@@ -239,6 +266,9 @@ fn cmd_sources(args: &Args) -> Result<(), String> {
             if s.enabled { "yes" } else { "no" },
             s.title
         );
+        if let Some(hint) = s.dump_hint() {
+            println!("  bulk open data, download from {hint}");
+        }
         if let Some(notes) = &s.notes {
             println!("  {notes}");
         }
@@ -260,7 +290,7 @@ fn cmd_verify(args: &Args) -> Result<(), String> {
             println!("{:<20} skipped (needs a locality)", entry.id);
             continue;
         };
-        match fetcher.get(&url, entry.query.min_interval_ms) {
+        match fetcher.get(&url, entry.min_interval_ms()) {
             Ok(body) => {
                 let records = entry.records(&body, &url, &today());
                 let labels: Vec<&str> = entry
