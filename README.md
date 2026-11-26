@@ -141,6 +141,7 @@ sharing a surname root, either name order, titles stripped out of the name field
 | [docs/desktop.md](docs/desktop.md) | The desktop tool: pipeline, slices, storage. |
 | [docs/online.md](docs/online.md) | The hosted surface, and the invariant it must keep. |
 | [docs/mobile.md](docs/mobile.md) | Device emission measurement on Android. |
+| [docs/roadmap.md](docs/roadmap.md) | Possible expansions, drafted against comparable tools. |
 | [docs/agents.md](docs/agents.md) | Instructions for coding agents working in this repo. |
 
 ## Contributing

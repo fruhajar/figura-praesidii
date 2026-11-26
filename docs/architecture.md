@@ -98,7 +98,10 @@ controller that the record is the sender's, which deserves a second deliberate s
 ## Not built yet
 
 The findings store and its encryption, the ICS deadline export, HIBP, and the mirror
-sweep. The report ends by naming them rather than implying the free tier
+sweep. [roadmap.md](roadmap.md) ranks those against what comparable tools do, and
+records the one finding that would reshape the register adapters: the Czech registers
+publish officer records as official open data, which makes the HTML scraper unnecessary
+for registers and leaves it useful only against commercial mirrors. The report ends by naming them rather than implying the free tier
 covers them.
 
 Known gaps, in the order they bite:

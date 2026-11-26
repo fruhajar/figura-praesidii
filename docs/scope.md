@@ -45,7 +45,13 @@ precisely so the controller liability sits with the searcher.
 
 Czech public registers expose far more than people realise. `or.justice.cz` publishes
 company officers' full name, date of birth and **home address**, so anyone who has
-ever been a jednatel has their residence online. RŽP exposes sole traders' places of
+ever been a jednatel has their residence online.
+
+> **To verify.** That last sentence is the load-bearing claim of slice 1 and it is
+> stated here without a source. Research in November 2026 turned up claims that
+> permanent-residence addresses are sometimes withheld from the public part. Check it
+> against zákon č. 304/2013 Sb. and a real extract; see the open questions in
+> [roadmap.md](roadmap.md). RŽP exposes sole traders' places of
 business, usually also home. Add `isir.justice.cz` (insolvency) and the land registry
 and the picture gets detailed.
 
